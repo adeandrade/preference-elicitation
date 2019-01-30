@@ -11,9 +11,9 @@ import numpy as np
     ('user_indptr', numba.int32[:]),
     ('user_indices', numba.int32[:]),
     ('num_users', numba.int32),
-    ('num_stories', numba.int32),
-    ('min_positive_stories_per_user', numba.int32),
-    ('num_stories_per_user', numba.int32),
+    ('num_items', numba.int32),
+    ('min_positive_items_per_user', numba.int32),
+    ('num_items_per_user', numba.int32),
     ('split_index', numba.int32)])
 class UserInteractionDataset(object):
     def __init__(
@@ -31,14 +31,14 @@ class UserInteractionDataset(object):
         self.user_indices = user_indices
 
         self.num_users = self.user_indptr.size - 1
-        self.num_stories = np.max(self.user_indices) + 1
+        self.num_items = np.max(self.user_indices) + 1
 
-        self.min_positive_stories_per_user = self.calculate_stories_per_user()
-        self.num_stories_per_user = self.min_positive_stories_per_user * 2
+        self.min_positive_items_per_user = self.calculate_items_per_user()
+        self.num_items_per_user = self.min_positive_items_per_user * 2
 
-        self.split_index = int(math.ceil(self.num_stories * train_ratio))
+        self.split_index = int(math.ceil(self.num_items * train_ratio))
 
-    def calculate_stories_per_user(self) -> int:
+    def calculate_items_per_user(self) -> int:
         """
 
         :return:
@@ -100,8 +100,8 @@ class UserInteractionDataset(object):
 
         example_index = 0
 
-        for story_index in range(start_index, end_index):
-            positive_user_indices = self.user_indices[self.user_indptr[story_index]:self.user_indptr[story_index + 1]]
+        for item_index in range(start_index, end_index):
+            positive_user_indices = self.user_indices[self.user_indptr[item_index]:self.user_indptr[item_index + 1]]
 
             num_user_indices = positive_user_indices.size
 
@@ -144,7 +144,7 @@ class UserInteractionDataset(object):
         """
         batch_size = accumulated_lengths.size - 1
 
-        matrix_shape = (batch_size, self.min_positive_stories_per_user * 2)
+        matrix_shape = (batch_size, self.min_positive_items_per_user * 2)
 
         user_indices = np.empty(matrix_shape, dtype=np.int32)
         targets = np.empty(matrix_shape, dtype=np.float32)
@@ -157,7 +157,7 @@ class UserInteractionDataset(object):
             positive_sparse_indices = np.arange(length) + offset
             np.random.shuffle(positive_sparse_indices)
 
-            for pair_index in range(self.min_positive_stories_per_user):
+            for pair_index in range(self.min_positive_items_per_user):
                 item_index = pair_index * 2
 
                 user_indices[batch_index, item_index] = positive_indices[positive_sparse_indices[item_index]]

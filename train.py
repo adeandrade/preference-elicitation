@@ -100,9 +100,9 @@ def main(path: str, train_ratio: float = 0.9):
     """
     dataset = load_dataset(path, train_ratio)
 
-    item_embeddings = load_item_embeddings(path, dataset.num_stories)
+    item_embeddings = load_item_embeddings(path, dataset.num_items)
 
-    model = PreferenceElicitationModel(item_embeddings, episode_length=dataset.num_stories_per_user)
+    model = PreferenceElicitationModel(item_embeddings, episode_length=dataset.num_items_per_user)
 
     train(model, dataset, path)
 
